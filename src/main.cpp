@@ -1,26 +1,40 @@
 #include <Arduino.h>
 #include <button.h>
+#include <encoder.h>
 
-// Create a button
 button_t button;
+encoder_t encoder;
+
+static void on_enc_push_button(button_t *btn) {
+}
 
 static void on_push_button(button_t *btn) {
-    // what should happen when you push a button?
 }
 
 void setup() {
-    // Set up the button 0
-    button_init(&button, BTN_0);
+    Serial.begin(115200);
 
-    // attach a callback function!
-    // it will be ran whenever the user clicks the button
-    // this says, whenever we push the button, we run 'on_push_button'
-    // and provide no additional arguements for the function (NULL)
+    button_init(&button, BTN_0);
     button_set_callback(&button, on_push_button, NULL);
+
+    encoder_init(&encoder, RE_CW, RE_CCW, RE_BTN);
 }
 
 void loop() {
-    // we can read the button using the button read
+    static int32_t last_pos = 0;
+    int32_t pos = encoder_get_position(&encoder);
+    if (pos != last_pos) {
+        Serial.printf("Encoder position: %ld\n", pos);
+        last_pos = pos;
+    }
+    button_process(&button);
+
     bool down = button_read(&button);
-    Serial.printf("Button status : %d\n", down);
+    static uint32_t t = 0;
+    if (millis() - t > 500) {
+        Serial.printf("Button status : %d\n", down);
+        t = millis();
+    }
+
+    delay(5);
 }

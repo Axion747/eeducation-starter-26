@@ -3,13 +3,39 @@
 static void __encoder_isr_a(void* ctx) {
     encoder_t* enc = (encoder_t*)ctx;
 
-    // What do we do now? We have spun in a certain direction
+    uint8_t a = digitalRead(enc->pin_a);
+    uint8_t b = digitalRead(enc->pin_b);
+    uint8_t curr = (a << 1) | b;
+
+    uint8_t idx = (enc->last_state << 2) | curr;
+    static const int8_t tbl[16] = {0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0};
+    int8_t delta = tbl[idx];
+    if (delta) {
+        enc->position += delta;
+        enc->last_state = curr;
+        if (enc->spin_cb) enc->spin_cb(enc, delta);
+    } else {
+        enc->last_state = curr;
+    }
 }
 
 static void __encoder_isr_b(void* ctx) {
     encoder_t* enc = (encoder_t*)ctx;
 
-    // What do we do now? We have spun in a certain direction
+    uint8_t a = digitalRead(enc->pin_a);
+    uint8_t b = digitalRead(enc->pin_b);
+    uint8_t curr = (a << 1) | b;
+
+    uint8_t idx = (enc->last_state << 2) | curr;
+    static const int8_t tbl[16] = {0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0};
+    int8_t delta = tbl[idx];
+    if (delta) {
+        enc->position += delta;
+        enc->last_state = curr;
+        if (enc->spin_cb) enc->spin_cb(enc, delta);
+    } else {
+        enc->last_state = curr;
+    }
 }
 
 static void __encoder_isr_btn(void* ctx) {
@@ -19,8 +45,24 @@ static void __encoder_isr_btn(void* ctx) {
 }
 
 void encoder_init(encoder_t* enc, pin_t pin_a, pin_t pin_b, pin_t pin_btn) {
-    // Initialize the encoder struct by giving it reasonable values
-    // And initialize the hardware if needed
+    enc->pin_a = pin_a;
+    enc->pin_b = pin_b;
+    enc->pin_btn = pin_btn;
+    enc->position = 0;
+    enc->last_state = 0;
+    enc->spin_cb = NULL;
+    enc->button_cb = NULL;
+
+    pinMode(enc->pin_a, INPUT_PULLUP);
+    pinMode(enc->pin_b, INPUT_PULLUP);
+    pinMode(enc->pin_btn, INPUT_PULLUP);
+
+    // read initial state
+    uint8_t a = digitalRead(enc->pin_a);
+    uint8_t b = digitalRead(enc->pin_b);
+    enc->last_state = (a << 1) | b;
+
+    attach_encoder_interrupts(enc);
 }
 
 void encoder_set_spin_callback(encoder_t* enc, void (*cb)(encoder_t* enc, int32_t delta)) {

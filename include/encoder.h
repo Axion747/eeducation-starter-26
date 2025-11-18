@@ -20,7 +20,7 @@ typedef struct encoder {
     volatile int32_t position;  ///< Accumulated position
     volatile uint8_t last_state;///< Last AB state (00..11)
 
-    void (*spin_cb)(struct encoder* enc, int32_t delta); ///< Called on rotation (±1)
+    void (*spin_cb)(struct encoder* enc, int32_t delta); ///< Called on rotation
     void (*button_cb)(struct encoder* enc);              ///< Called on button press
 } encoder_t;
 

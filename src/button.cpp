@@ -1,31 +1,66 @@
 #include "button.h"
 
 void button_init(button_t* btn, pin_t pin) {
-    // Setup the button by setting it's pin, and telling
-    // associated hardware what it should do
+    btn->pin = pin;
+    btn->callback = NULL;
+    btn->ctx = NULL;
+    btn->event_pending = false;
+    btn->last_raw = digitalRead(pin);
+    btn->last_debounce_ms = 0;
+    btn->debounce_ms = 20; // default debounce 20 ms
+    btn->stable_state = (btn->last_raw == LOW); // assume pressed if LOW
 
-    // (Hint), you'll want to set up an interrupt!
+    pinMode(pin, INPUT_PULLUP);
+
+    attach_button_interrupt(btn, pin);
 }
 
 void button_set_callback(button_t* btn, void (*cb)(button_t* ctx), void* ctx) {
-    // Update the button struct to set the user callback
-
-    // You'll want to store the ctx pointer in the button
-    // And do some other things
+    btn->callback = cb;
+    btn->ctx = ctx;
 }
 
 bool button_read(const button_t* btn) {
-    // Check if this button has been read
-    return false;
+    return btn->stable_state;
 }
 
 static void __button_callback(void *ctx) {
     button_t *btn = (button_t *)(ctx);
 
-    // Something has triggered the interrupt, what should happen?
-    // Perhaps call the user callback?
+    if (!btn) return;
+    btn->last_raw = digitalRead(btn->pin);
+    btn->event_pending = true;
 }
 
 void attach_button_interrupt(button_t *btn, pin_t pin) {
-    attachInterruptArg(digitalPinToInterrupt(pin), __button_callback, btn, pin);
+    attachInterruptArg(digitalPinToInterrupt(pin), __button_callback, btn, CHANGE);
+}
+
+void button_process(button_t* btn) {
+    // Should be called from loop() or a task
+    if (!btn) return;
+
+    if (!btn->event_pending) return;
+
+    // Start debounce timer
+    uint32_t now = millis();
+    if (btn->last_debounce_ms == 0) {
+        btn->last_debounce_ms = now;
+        return;
+    }
+
+    // Wait until stable interval has passed
+    if ((now - btn->last_debounce_ms) < btn->debounce_ms) return;
+
+    // debounce period passed — accept sampled level
+    btn->last_debounce_ms = 0;
+    btn->event_pending = false;
+
+    bool pressed = (btn->last_raw == LOW);
+    if (pressed != btn->stable_state) {
+        btn->stable_state = pressed;
+        if (pressed && btn->callback) {
+            btn->callback(btn);
+        }
+    }
 }
