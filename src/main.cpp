@@ -12,7 +12,7 @@ static void on_push_button(button_t *btn) {
 }
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(9600);
 
     button_init(&button, BTN_0);
     button_set_callback(&button, on_push_button, NULL);
