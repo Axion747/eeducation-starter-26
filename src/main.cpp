@@ -16,7 +16,7 @@ static void on_push_button(button_t *btn) {
 void setup() {
     Serial.begin(9600);
 
-    button_init(&button, BTN_0);
+    button_init(&button, BTN_1);
     button_set_callback(&button, on_push_button, NULL);
 
     encoder_init(&encoder, RE_CW, RE_CCW, RE_BTN);
