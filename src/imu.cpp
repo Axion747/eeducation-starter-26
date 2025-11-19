@@ -7,13 +7,13 @@
 #define STATUS_REG              0x02
 #define ACC_CONF_REG            0x20
 #define GYR_CONF_REG            0x21
-#define ACC_DATA_X_REG          0x21
-#define ACC_DATA_Y_REG          0x25
-#define ACC_DATA_Z_REG          0x27
-#define GYR_DATA_X_REG          0x29
-#define GYR_DATA_Y_REG          0x2B
-#define GYR_DATA_Z_REG          0x2D
-#define TEMP_DATA_REG           0x31
+#define ACC_DATA_X_REG          0x03
+#define ACC_DATA_Y_REG          0x04
+#define ACC_DATA_Z_REG          0x05
+#define GYR_DATA_X_REG          0x06
+#define GYR_DATA_Y_REG          0x07
+#define GYR_DATA_Z_REG          0x08
+#define TEMP_DATA_REG           0x09
 #define CMD_REG                 0x7E
 #define FEATURE_IO0_REG         0x10
 #define FEATURE_IO1_REG         0x11
@@ -31,10 +31,9 @@
 #define GYR_CONF_NORMAL_100HZ_2000DPS 0x4048  // gyro: 100Hz, +-2000 deg/s
 
 // Scale factors
-static float accel_scale = 1.0f / ACC_ANGLE_LSB_PER_D;
+static float accel_scale = 1.0f / ACC_ANGLE_LSB_PER_G;
 static float gyro_scale = 1.0f / GYRO_ANGLE_LSB_PER_DPS;
 
-// Helper function to write 16-bit register
 static void writeRegister16(imu_t* imu, uint8_t reg, uint16_t data) {
     imu->wire->beginTransmission(imu->i2c_addr);
     imu->wire->write(reg);
@@ -116,7 +115,7 @@ bool imu_init(imu_t* imu, pin_t int_pin, uint8_t i2c_addr, TwoWire* wire) {
     delay(50);  // Wait for reset to complete
     
     // Configure accelerometer: 100Hz, normal mode
-    writeRegister16(imu, ACC_CONF_REG, ACC_CONF_NORMAL_100HZ_BG);
+    writeRegister16(imu, ACC_CONF_REG, ACC_CONF_NORMAL_100HZ_8G);
     delay(10);
     
     // Configure gyroscope: 100Hz, ±2000 deg/s
