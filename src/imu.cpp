@@ -22,7 +22,7 @@
 #define FEATURE_CTRL_REG        0x40
 
 // Configuration constants
-#define BMI323_CHIP_ID              0x43
+#define BMI323_CHIP_ID              0x00
 #define OUTPUT_RATE_HZ              20     // 20Hz data output
 #define ACC_ANGLE_LSB_PER_G         4096.0    // deg/s range
 #define GYRO_ANGLE_LSB_PER_DPS      16.384  // ~2000 deg/s range
@@ -105,7 +105,7 @@ bool imu_init(imu_t* imu, pin_t int_pin, uint8_t i2c_addr, TwoWire* wire) {
     
     // Read chip ID
     uint16_t chip_id = readRegister16(imu, CHIP_ID_REG);
-    if ((chip_id & 0xFF) != BMI323_CHIP_ID) {
+    if ((chip_id & 0x00) != BMI323_CHIP_ID) {
         Serial.printf("Invalid chip ID: 0x%02X (expected 0x%02X)\n", (chip_id & 0xFF), BMI323_CHIP_ID);
         return false;
     }

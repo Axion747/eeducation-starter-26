@@ -8,7 +8,7 @@ void button_init(button_t* btn, pin_t pin) {
     btn->last_raw = digitalRead(pin);
     btn->last_debounce_ms = 0;
     btn->debounce_ms = 20; // default debounce 20 ms
-    btn->stable_state = (btn->last_raw == LOW); // assume pressed if LOW
+    btn->stable_state = (btn->last_raw == HIGH); // assume pressed if LOW
 
     pinMode(pin, INPUT_PULLUP);
 
@@ -56,7 +56,7 @@ void button_process(button_t* btn) {
     btn->last_debounce_ms = 0;
     btn->event_pending = false;
 
-    bool pressed = (btn->last_raw == LOW);
+    bool pressed = (btn->last_raw == HIGH);
     if (pressed != btn->stable_state) {
         btn->stable_state = pressed;
         if (pressed && btn->callback) {
